@@ -1,5 +1,5 @@
 <template>
-  <div id="q-app">
+  <div id="q-app" class="app">
     <router-view />
   </div>
 </template>
@@ -8,3 +8,9 @@ export default {
   name: 'App'
 }
 </script>
+
+<style lang='scss'>
+.app {
+  background-color: $dark;
+}
+</style>
