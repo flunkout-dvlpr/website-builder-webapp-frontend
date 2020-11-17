@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header elevated class="shadow-10">
+    <q-header elevated class="shadow-10 bg-brand-grey">
       <q-toolbar>
         <q-img
           src="https://s3.us-east-2.amazonaws.com/www.cleancode.llc/Web+Design%404x-8.png"
