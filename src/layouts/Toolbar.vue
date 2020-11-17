@@ -21,6 +21,6 @@
 
 <script>
 export default {
-  name: 'MainLayout'
+  name: 'Toolbar'
 }
 </script>
