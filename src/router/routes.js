@@ -5,12 +5,12 @@ const routes = [
     component: () => import('layouts/Toolbar.vue'),
     children: [
       {
-        path: '/registration',
+        path: '/',
         component: () => import('pages/Home.vue'),
         children: [
           {
             name: 'Registration',
-            path: '/registration',
+            path: '/',
             component: () => import('components/Registration.vue')
           },
           {
