@@ -1,9 +1,11 @@
 <template>
   <div>
-    <q-form @submit.prevent="onSubmit">
+    <!-- Business Registration -->
     <q-card-section class="q-pa-xs text-center text-grey-3">
-      <div class="row justify-center full-width q-col-gutter-md q-mb-xs">
-        <div class="col-8">
+      <q-form @submit.prevent="onSubmit">
+      <!-- Name -->
+      <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
+        <div class="col-md-8 col-xs-12">
           <q-item-label class="text-h4 q-ma-xs">Register Business</q-item-label>
           <q-input
             dark
@@ -17,8 +19,9 @@
           />
         </div>
       </div>
-      <div class="row justify-center full-width q-col-gutter-md q-mb-xs">
-        <div class="col-4">
+      <!-- Email - Phone -->
+      <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
+        <div class="col-md-4 col-xs-12">
           <q-input
             dark
             square
@@ -30,7 +33,7 @@
             :rules="[val => /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,10})+$/.test(val) || 'E-mail must be valid']"
           />
         </div>
-        <div class="col-4">
+        <div class="col-md-4 col-xs-12">
           <q-input
             dark
             square
@@ -47,8 +50,9 @@
           />
         </div>
       </div>
-      <div class="row justify-center full-width q-col-gutter-md q-mb-xs">
-        <div class="col-5">
+      <!-- Address - Zip Code -->
+      <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
+        <div class="col-md-5 col-xs-12">
           <q-input
             dark
             square
@@ -60,7 +64,7 @@
             :rules="[val => !!val || 'Please enter an address']"
           />
         </div>
-        <div class="col-3">
+        <div class="col-md-3 col-xs-12">
           <q-input
             dark
             square
@@ -72,8 +76,9 @@
           />
         </div>
       </div>
-      <div class="row justify-center full-width q-col-gutter-md q-mb-xs">
-        <div class="col-4">
+      <!-- City - State -->
+      <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
+        <div class="col-md-4 col-xs-12">
           <q-input
             dark
             square
@@ -84,7 +89,7 @@
             :rules="[val => !!val || 'Please enter a city']"
           />
         </div>
-        <div class="col-4">
+        <div class="col-md-4 col-xs-12">
           <q-select
             dark
             square
@@ -102,42 +107,153 @@
           />
         </div>
       </div>
-    </q-card-section>
-
-    <q-card-section class="q-pa-xs text-center text-grey-3">
-      <div class="row justify-center full-width q-col-gutter-md q-mb-xs">
-        <div class="col-8">
-          <q-item-label class="text-h4 q-ma-xs">Select Template</q-item-label>
+      <!-- Template Selection -->
+      <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
+        <div class="col-md-8 col-xs-12">
+          <q-item-label class="text-h4 q-ma-xs">Template</q-item-label>
           <q-item-label class="text-caption q-ma-xs">(GitHub Repo)</q-item-label>
           <q-select
             dark
             square
             outlined
             color="brand-yellow"
+            :popup-content-style="{ backgroundColor: '#1D1D1D' }"
             v-model="template"
             :options="templates"
             label="Template"
             :rules="[val => !!val || 'Please select a template']"
+            emit-value
+            map-options
           />
         </div>
       </div>
-    </q-card-section>
-
-    <q-card-actions class="q-pa-xs text-center">
-      <div class="row justify-center full-width q-col-gutter-md q-mb-xs">
-        <div class="col-8">
+      <!-- Submission (Create db record, set colors, clone repo) -->
+      <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
+        <div class="col-md-2 col-xs-12">
           <q-btn
             flat
             no-caps
-            class="bg-brand-yellow"
-            label="Submit"
+            class="text-grey-9 full-width bg-brand-teal"
+            label="Register"
             type="submit"
             :loading="loading"
           />
         </div>
       </div>
-    </q-card-actions>
-    </q-form>
+      </q-form>
+    </q-card-section>
+    <!-- Brand Colors Selection -->
+    <q-card-section class="q-pa-xs text-center text-grey-3">
+      <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
+        <div class="col-md-8 col-xs-12">
+          <q-item-label class="text-h4 q-ma-xs">Brand Colors</q-item-label>
+        </div>
+      </div>
+      <!-- Theme Color - Main Background Color -->
+      <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
+        <div class="col-md-4 col-xs-12">
+          <q-input
+            dark
+            square
+            outlined
+            color="brand-yellow"
+            v-model="themeColor"
+            label="Theme"
+          >
+            <template v-slot:append>
+              <q-icon name="colorize" class="cursor-pointer">
+                <q-popup-proxy transition-show="scale" transition-hide="scale">
+                  <q-color default-view="palette" format-model="hex" dark v-model="themeColor" />
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
+        </div>
+        <div class="col-md-4 col-xs-12">
+          <q-input
+            dark
+            square
+            outlined
+            color="brand-yellow"
+            v-model="backgroundColor"
+            label="Main Background"
+          >
+            <template v-slot:append>
+              <q-icon name="colorize" class="cursor-pointer">
+                <q-popup-proxy transition-show="scale" transition-hide="scale">
+                  <q-color default-view="palette" format-model="hex" dark v-model="backgroundColor" />
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
+        </div>
+      </div>
+      <!-- Accent Background Color 1 - Accent Background Color 2 -->
+      <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
+        <div class="col-md-4 col-xs-12">
+          <q-input
+            dark
+            square
+            outlined
+            color="brand-yellow"
+            v-model="accentBackground1Color"
+            label="Accent Background 1"
+          >
+            <template v-slot:append>
+              <q-icon name="colorize" class="cursor-pointer">
+                <q-popup-proxy transition-show="scale" transition-hide="scale">
+                  <q-color default-view="palette" format-model="hex" dark v-model="accentBackground1Color" />
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
+        </div>
+        <div class="col-md-4 col-xs-12">
+          <q-input
+            dark
+            square
+            outlined
+            color="brand-yellow"
+            v-model="accentBackground2Color"
+            label="Accent Background 2"
+          >
+            <template v-slot:append>
+              <q-icon name="colorize" class="cursor-pointer">
+                <q-popup-proxy transition-show="scale" transition-hide="scale">
+                  <q-color default-view="palette" format-model="hex" dark v-model="accentBackground2Color" />
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
+        </div>
+      </div>
+      <!-- Text Color -->
+      <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
+        <div class="col-md-4 col-xs-12">
+          <q-input
+            dark
+            square
+            outlined
+            color="brand-yellow"
+            v-model="textColor"
+            label="Text"
+          >
+            <template v-slot:append>
+              <q-icon name="colorize" class="cursor-pointer">
+                <q-popup-proxy transition-show="scale" transition-hide="scale">
+                  <q-color default-view="palette" format-model="hex" dark v-model="textColor" />
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
+        </div>
+      </div>
+      <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
+        <div class="col-md-2 col-xs-12">
+          <q-btn flat no-caps class="full-width text-grey-9 bg-brand-orange" label="Preview" @click="showColorsPreview" />
+        </div>
+      </div>
+    </q-card-section>
   </div>
 </template>
 
@@ -195,12 +311,14 @@ const states = [
   { label: 'Wyoming', value: 'WY' }
 ]
 const templates = [
-  { label: 'Auto Shop', value: 'https://github.com/clean-code-llc/TEMAPLATE-REPO.git' },
-  { label: 'Restaurant', value: 'https://github.com/clean-code-llc/TEMAPLATE-REPO.git' },
-  { label: 'Beauty Salon', value: 'https://github.com/clean-code-llc/TEMAPLATE-REPO.git' },
-  { label: 'Barber Shop', value: 'https://github.com/clean-code-llc/TEMAPLATE-REPO.git' },
-  { label: 'Realtor', value: 'https://github.com/clean-code-llc/TEMAPLATE-REPO.git' }
+  { label: 'Auto Shop', value: 'https://github.com/clean-code-llc/auto-shop.git' },
+  { label: 'Restaurant', value: 'https://github.com/clean-code-llc/restaurant.git' },
+  { label: 'Beauty Salon', value: 'https://github.com/clean-code-llc/beauty-salon.git' },
+  { label: 'Barber Shop', value: 'https://github.com/clean-code-llc/barber-shop.git' },
+  { label: 'Realtor', value: 'https://github.com/clean-code-llc/realtor.git' }
 ]
+import { colors } from 'quasar'
+import ColorsPreview from 'components/ColorsPreview'
 export default {
   name: 'Registration',
   data () {
@@ -218,14 +336,19 @@ export default {
       filteredStates: states,
       template: null,
       templates,
-      loading: false
+      loading: false,
+      themeColor: colors.getBrand('primary'),
+      backgroundColor: colors.getBrand('dark'),
+      accentBackground1Color: colors.getBrand('secondary'),
+      accentBackground2Color: colors.getBrand('accent'),
+      textColor: colors.getBrand('info')
     }
   },
   methods: {
     onSubmit () {
       console.log('Call action to create record in db')
       console.log('Clone selected repo template')
-      this.$router.push(({ name: 'LandingCarousel' }))
+      // this.$router.push(({ name: 'LandingCarousel' }))
     },
     filterStates (searchText, update) {
       if (searchText === '') {
@@ -237,6 +360,17 @@ export default {
       update(() => {
         const searchTextFormatted = searchText.toLowerCase()
         this.filteredStates = this.states.filter(state => state.label.toLowerCase().indexOf(searchTextFormatted) > -1)
+      })
+    },
+    showColorsPreview () {
+      colors.setBrand('primary', this.themeColor)
+      colors.setBrand('dark', this.backgroundColor)
+      colors.setBrand('secondary', this.accentBackground1Color)
+      colors.setBrand('accent', this.accentBackground2Color)
+      colors.setBrand('info', this.textColor)
+      this.$q.dialog({
+        component: ColorsPreview,
+        parent: this
       })
     }
   }
