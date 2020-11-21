@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import createPersistedState from 'vuex-persistedstate'
 
 // import example from './module-example'
 
@@ -19,7 +20,9 @@ export default function (/* { ssrContext } */) {
     modules: {
       // example
     },
-
+    plugins: [createPersistedState({
+      storage: window.sessionStorage
+    })],
     // enable strict mode (adds overhead!)
     // for dev mode only
     strict: process.env.DEBUGGING
