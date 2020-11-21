@@ -11,6 +11,6 @@ export default {
 
 <style lang='scss'>
 .app {
-  background-color: $dark;
+  background-color: #1D1D1D; //brand-dark
 }
 </style>
