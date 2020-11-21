@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+  install:
+      commands:
+        - echo Installing node.js...
+        - curl -sL https://deb.nodesource.com/setup_12.x | bash -
+        - apt install -y nodejs
+        - echo Installing npm...
+        - curl -L https://npmjs.org/install.sh | sh
+  pre_build:
+    commands:
+      # install dependencies 
+      - echo Installing dependencies...
+      - npm install -g @quasar/cli
+  build:
+    commands:
+      #build 
+      - echo Building...
+      - npm install
+      - quasar build
+
+artifacts:
+  files:
+    - "**/*"
+  discard-paths: no
+  base-directory: dist/spa
