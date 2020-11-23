@@ -24,6 +24,7 @@
             square
             outlined
             color="brand-yellow"
+            :popup-content-style="{ backgroundColor: '#1D1D1D' }"
             v-model="iconCategory"
             :options="iconCategories"
             @input="highlightInView.icon = null"
@@ -40,6 +41,7 @@
             use-input
             hide-selected
             fill-input
+            :popup-content-style="{ backgroundColor: '#1D1D1D' }"
             color="brand-yellow"
             v-model="highlightInView.icon"
             :options="filteredIcons"
@@ -76,7 +78,7 @@
           color="brand-orange"
           text-color="grey-9"
           v-model="currentHighlight"
-          :max="highlights.length"
+          :max="highlightsData.length"
         />
       </div>
       <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
@@ -101,6 +103,7 @@ const highlight = {
   name: null,
   icon: null
 }
+import { mapGetters, mapActions } from 'vuex'
 import materialDesign from 'src/assets/material-design.json'
 import HighlightsPreview from 'components/HighlightsPreview'
 export default {
@@ -129,7 +132,7 @@ export default {
         { label: 'Toggle', value: 'toggle' }
       ],
       filteredIcons: this.icons,
-      highlights: [
+      highlightsData: [
         { ...highlight },
         { ...highlight },
         { ...highlight }
@@ -138,6 +141,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters('builder', ['business', 'template', 'highlights']),
     icons () {
       if (this.iconCategory) {
         return materialDesign.icons.filter(icon => icon.categories.includes(this.iconCategory)).map(function (icon) {
@@ -149,10 +153,11 @@ export default {
       })
     },
     highlightInView () {
-      return this.highlights[this.currentHighlight - 1]
+      return this.highlightsData[this.currentHighlight - 1]
     }
   },
   methods: {
+    ...mapActions('builder', ['updateHighlights']),
     filterIcons (searchText, update) {
       if (searchText === '') {
         update(() => {
@@ -168,22 +173,22 @@ export default {
     addHighlight () {
       this.$refs.highlightsForm.validate().then(success => {
         if (success) {
-          this.highlights.push({ ...highlight })
+          this.highlightsData.push({ ...highlight })
           this.currentHighlight += 1
         }
       })
     },
     deleteHighlight () {
-      if (this.highlights.length > 3) {
+      if (this.highlightsData.length > 3) {
         var idx = this.currentHighlight - 1
-        this.highlights.splice(idx, 1)
+        this.highlightsData.splice(idx, 1)
         this.currentHighlight = 1
       } else {
         this.$q.notify({
           color: 'brand-yellow',
           textColor: 'grey-9',
           icon: 'error',
-          message: 'A minimum of 3 highlights is required!'
+          message: 'A minimum of 3 highlightsData is required!'
         })
       }
     },
@@ -191,9 +196,20 @@ export default {
       this.$q.dialog({
         component: HighlightsPreview,
         parent: this,
-        highlights: this.highlights
+        highlights: this.highlightsData
       })
+    },
+    setHighlightsData () {
+      this.highlightsData = this.$lodash.cloneDeep(this.highlights)
     }
+  },
+  created () {
+    this.setHighlightsData()
+  },
+  beforeRouteLeave (to, from, next) {
+    console.log('Save Changes?') // Ask user to save changes
+    this.updateHighlights(this.highlightsData)
+    next()
   }
 }
 </script>
