@@ -49,8 +49,12 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 export default {
   name: 'Home',
+  computed: {
+    ...mapGetters('builder', ['business'])
+  },
   methods: {
     selectTab (event) {
       var currentRoute = this.$route.name
@@ -112,6 +116,19 @@ export default {
           }
           break
       }
+    }
+  },
+  beforeRouteUpdate (to, from, next) {
+    var currentRoute = from.name
+    if (currentRoute === 'Registration' && !this.business.id) {
+      this.$q.notify({
+        color: 'brand-yellow',
+        textColor: 'grey-9',
+        icon: 'error',
+        message: 'Please complete registration!'
+      })
+    } else {
+      next()
     }
   }
 }
