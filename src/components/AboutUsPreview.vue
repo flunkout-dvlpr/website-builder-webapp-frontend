@@ -4,7 +4,7 @@
     <q-parallax :height="400">
       <template v-slot:media>
         <img
-          src="https://img.freepik.com/free-photo/black-texture_1205-327.jpg?size=626&ext=jpg"
+          :src="aboutUs.image"
         >
       </template>
       <div align="left" class="text-h1 text-info text-weight-bold">{{ aboutUs.title }}</div>
