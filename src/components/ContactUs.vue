@@ -12,7 +12,7 @@
             square
             outlined
             color="brand-yellow"
-            v-model="email"
+            v-model="contactUsData.email"
             label="Email"
             type="text"
             :rules="[val => /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,10})+$/.test(val) || 'E-mail must be valid']"
@@ -26,7 +26,7 @@
             square
             outlined
             color="brand-yellow"
-            v-model="phone"
+            v-model="contactUsData.phone"
             label="Phone"
             fill-mask
             unmasked-value
@@ -50,18 +50,36 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex'
 export default {
   name: 'ContactUs',
   data () {
     return {
-      phone: null,
-      email: null
+      contactUsData: {
+        phone: null,
+        email: null
+      }
     }
   },
+  computed: {
+    ...mapGetters('builder', ['business', 'template', 'contactUs'])
+  },
   methods: {
+    ...mapActions('builder', ['updateContactUs']),
     onSubmit () {
       console.log('handle data')
+    },
+    setContactUsData () {
+      this.contactUsData = this.$lodash.cloneDeep(this.contactUs)
     }
+  },
+  created () {
+    this.setContactUsData()
+  },
+  beforeRouteLeave (to, from, next) {
+    console.log('Save Changes?') // Ask user to save changes
+    this.updateContactUs(this.contactUsData)
+    next()
   }
 }
 </script>
