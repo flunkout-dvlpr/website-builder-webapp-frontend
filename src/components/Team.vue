@@ -30,17 +30,34 @@
         </div>
       </div>
       <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
-        <div class="col-md-6 col-xs-12">
+        <div class="col-md-6 col-xs-12" v-if="!teamMemberInView.image">
           <q-uploader
             flat
             square
-            text-color="grey-3"
+            hide-upload-btn
+            style="width: auto"
             color="brand-orange"
-            class="text-left bg-brand-grey"
-            url="http://localhost:8082/upload"
             label="Profile Image"
-            style="width: auto;"
+            class="text-left bg-brand-grey"
+            :url="url"
+            ref="fileUploader"
+            @added="getUploadLink"
+            @uploaded="onUploadComplete"
+            @rejected="onUploadFail"
+            :headers="[{'Content-Type': '*'}]"
+            :send-raw="true"
+            max-files="1"
+            max-file-size="10000000"
+            method="PUT"
           />
+        </div>
+        <div class="col-md-6 col-xs-12" v-if="teamMemberInView.image">
+          <q-img
+            :src="teamMemberInView.image"
+            :ratio="4/3"
+          >
+            <q-btn flat no-caps label="Re-Upload" class="shadow-14 bg-brand-yellow text-grey-9" style="top: 85%;" @click="resetImage"/>
+          </q-img>
         </div>
       </div>
       </q-form>
@@ -51,7 +68,7 @@
           color="brand-orange"
           text-color="grey-9"
           v-model="currentTeamMember"
-          :max="teamMembers.length"
+          :max="teamMembersData.length"
         />
       </div>
       <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
@@ -75,37 +92,75 @@
 const teamMember = {
   id: null,
   name: null,
-  image: 'https://lh3.googleusercontent.com/proxy/oVLBKoTjgDC1NiFpUmU424L8idZ7kCG5gXA241AO6rHHByYWZMx0L_a6F-4IYIfTymkaLbrwIoOsdYtZNlVCdG8ryvPi6BsW_atBGN3zYLxh1sKNsA806eAG6e9a6eYCHtMNVO_3Ag'
+  image: null
 }
+import { mapGetters, mapActions } from 'vuex'
 import TeamPreview from 'components/TeamPreview'
 export default {
   name: 'Team',
   data () {
     return {
-      teamMembers: [
+      url: null,
+      teamMembersData: [
         { ...teamMember }
       ],
       currentTeamMember: 1
     }
   },
   computed: {
+    ...mapGetters('builder', ['business', 'template', 'teamMembers']),
     teamMemberInView () {
-      return this.teamMembers[this.currentTeamMember - 1]
+      return this.teamMembersData[this.currentTeamMember - 1]
     }
   },
   methods: {
+    ...mapActions('builder', ['updateTeamMembers', 'generateUploadLink']),
+    getUploadLink () {
+      var body = {
+        id: this.business.id,
+        template: this.template,
+        section: 'team-members',
+        fileName: `team-member-${this.currentTeamMember}-image.png`
+      }
+      this.generateUploadLink(body).then((response) => {
+        this.url = response
+      }).then(() => {
+        this.$refs.fileUploader.upload()
+      })
+    },
+    onUploadFail () {
+      this.$q.notify({
+        color: 'warning',
+        textColor: 'grey-2',
+        icon: 'warning',
+        message: 'File extension not supported or File size is too large'
+      })
+    },
+    onUploadComplete () {
+      this.$q.notify({
+        color: 'positive',
+        textColor: 'grey-9',
+        icon: 'send',
+        message: 'File uploaded successfully'
+      })
+      this.teamMembersData[this.currentTeamMember - 1].image = `https://website-builder-webapp-data.s3.us-east-2.amazonaws.com/${this.template}/${this.business.id}/team-members/team-member-${this.currentTeamMember}-image.png`
+    },
+    resetImage () {
+      this.teamMembersData[this.currentTeamMember - 1].image = null
+    },
+
     addMember () {
       this.$refs.teamForm.validate().then(success => {
         if (success) {
-          this.teamMembers.push({ ...teamMember })
+          this.teamMembersData.push({ ...teamMember })
           this.currentTeamMember += 1
         }
       })
     },
     deleteMember () {
-      if (this.teamMembers.length > 1) {
+      if (this.teamMembersData.length > 1) {
         var idx = this.currentTeamMember - 1
-        this.teamMembers.splice(idx, 1)
+        this.teamMembersData.splice(idx, 1)
         this.currentTeamMember = 1
       } else {
         this.$q.notify({
@@ -118,7 +173,7 @@ export default {
     },
     showTeamPreview () {
       var teamMemberId = 1
-      this.teamMembers.forEach(teamMember => {
+      this.teamMembersData.forEach(teamMember => {
         teamMember.id = teamMemberId
         teamMemberId += 1
         return teamMember
@@ -126,9 +181,20 @@ export default {
       this.$q.dialog({
         component: TeamPreview,
         parent: this,
-        teamMembers: this.teamMembers
+        teamMembers: this.teamMembersData
       })
+    },
+    setTeamMembersData () {
+      this.teamMembersData = this.$lodash.cloneDeep(this.teamMembers)
     }
+  },
+  created () {
+    this.setTeamMembersData()
+  },
+  beforeRouteLeave (to, from, next) {
+    console.log('Save Changes?') // Ask user to save changes
+    this.updateTeamMembers(this.teamMembersData)
+    next()
   }
 }
 </script>
