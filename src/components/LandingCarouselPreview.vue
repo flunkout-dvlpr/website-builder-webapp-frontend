@@ -18,6 +18,7 @@
         v-for="slide in slides"
         :key="slide.id"
         :name="slide.id"
+        :img-src="slide.image"
         class="column justify-center items-start content-center text-center full-height q-pt-md"
       >
         <div class="background-block">
