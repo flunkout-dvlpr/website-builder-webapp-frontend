@@ -40,7 +40,7 @@
             square
             outlined
             color="brand-yellow"
-            v-model="placeId"
+            v-model="googlePlaceData.id"
             label="ID"
             :rules="[val => !!val || 'Please enter Google Place ID or enter 0']"
           />
@@ -51,7 +51,7 @@
     <q-card-actions class="q-pa-xs text-center">
       <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
         <div class="col-md-2 col-xs-6">
-          <q-btn flat no-caps class="full-width bg-brand-orange" label="Preview" @click="showReviewsPreview" />
+          <q-btn flat no-caps class="full-width bg-brand-orange" :label="!googlePlaceData.id ? 'Search' : 'Preview'" @click="showReviewsPreview" />
         </div>
       </div>
     </q-card-actions>
@@ -65,6 +65,7 @@
 
 <script>
 const google = window.google
+import { mapGetters, mapActions } from 'vuex'
 import ReviewsPreview from 'components/ReviewsPreview'
 export default {
   name: 'Reviews',
@@ -73,62 +74,67 @@ export default {
       place: null,
       results: null,
       loadingResults: false,
-      placeId: null,
-      placeDetails: {}
+      googlePlaceData: {
+        id: null
+      }
     }
   },
+  computed: {
+    ...mapGetters('builder', ['business', 'template', 'googlePlace'])
+  },
   methods: {
+    ...mapActions('builder', ['updateGooglePlace']),
     setPlaceId (result) {
-      this.placeId = result.value
+      this.googlePlaceData.id = result.value
       // Initialize PlacesService and call getDetails
       var map = new google.maps.Map(document.getElementById('map'))
       var service = new google.maps.places.PlacesService(map)
-      service.getDetails({ placeId: result.value }, this.getGooglePlaceDetails)
+      service.getDetails({ placeId: result.value }, this.getGooglePlaceData)
     },
-    getGooglePlaceDetails (details, status) {
-      this.placeDetails.name = details.name
-      this.placeDetails.phone = details.formatted_phone_number
-      this.placeDetails.rating = details.rating
-      this.placeDetails.reviews = details.reviews
-      this.placeDetails.website = details.website
-      this.placeDetails.hours = {
+    getGooglePlaceData (details, status) {
+      this.googlePlaceData.name = details.name
+      this.googlePlaceData.phone = details.formatted_phone_number
+      this.googlePlaceData.rating = details.rating
+      this.googlePlaceData.reviews = details.reviews
+      this.googlePlaceData.website = details.website
+      this.googlePlaceData.hours = {
         formatted: details.opening_hours.weekday_text,
         periods: details.opening_hours.periods
       }
       // Parse address
       details.address_components.forEach(component => {
-        if (!this.placeDetails.address) {
-          this.placeDetails.address = {}
+        if (!this.googlePlaceData.address) {
+          this.googlePlaceData.address = {}
         }
         var name = component.types[0]
         var value = component.long_name
         switch (name) {
           case 'administrative_area_level_1':
-            this.placeDetails.address.state = value
+            this.googlePlaceData.address.state = value
             break
           case 'country':
-            this.placeDetails.address[name] = value
+            this.googlePlaceData.address[name] = value
             break
           case 'locality':
-            this.placeDetails.address.city = value
+            this.googlePlaceData.address.city = value
             break
           case 'postal_code':
-            this.placeDetails.address.zip_code = value
+            this.googlePlaceData.address.zip_code = value
             break
           case 'route':
-            this.placeDetails.address.street_name = value
+            this.googlePlaceData.address.street_name = value
             break
           case 'street_number':
-            this.placeDetails.address[name] = value
+            this.googlePlaceData.address[name] = value
             break
         }
       })
-      this.placeDetails.address.street = `${this.placeDetails.address.street_number} ${this.placeDetails.address.street_name}`
+      this.googlePlaceData.address.street = `${this.googlePlaceData.address.street_number} ${this.googlePlaceData.address.street_name}`
       // Get photo urls
-      this.placeDetails.photos = details.photos.map(function (photo) {
+      this.googlePlaceData.photos = details.photos.map(function (photo) {
         return photo.getUrl()
       })
-      console.log(this.placeDetails)
+      console.log(this.googlePlaceData)
     },
     getGooglePlacesResults (predictions, status) {
       var formattedResults = predictions.map(function (prediction) {
@@ -158,7 +164,7 @@ export default {
           this.$q.dialog({
             component: ReviewsPreview,
             parent: this,
-            reviews: this.placeDetails.reviews
+            reviews: this.googlePlaceData.reviews
           })
         } else {
           this.$q.notify({
@@ -169,7 +175,18 @@ export default {
           })
         }
       })
+    },
+    setGooglePlaceData () {
+      this.googlePlaceData = this.$lodash.cloneDeep(this.googlePlace)
     }
+  },
+  created () {
+    this.setGooglePlaceData()
+  },
+  beforeRouteLeave (to, from, next) {
+    console.log('Save Changes?') // Ask user to save changes
+    this.updateGooglePlace(this.googlePlaceData)
+    next()
   }
 }
 </script>
