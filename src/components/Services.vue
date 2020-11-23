@@ -71,7 +71,7 @@
           color="brand-orange"
           text-color="grey-9"
           v-model="currentService"
-          :max="services.length"
+          :max="servicesData.length"
           @input="currentDetail = 0"
         />
       </div>
@@ -96,13 +96,14 @@
 const detail = {
   text: null
 }
+import { mapGetters, mapActions } from 'vuex'
 export default {
   name: 'Services',
   data () {
     return {
       currentService: 1,
       currentDetail: 0,
-      services: [
+      servicesData: [
         {
           name: null,
           details: [
@@ -131,21 +132,23 @@ export default {
     }
   },
   computed: {
+    ...mapGetters('builder', ['business', 'template', 'services']),
     serviceInView () {
-      return this.services[this.currentService - 1]
+      return this.servicesData[this.currentService - 1]
     },
     descriptionInView () {
       return this.serviceInView.details[this.currentDetail]
     }
   },
   methods: {
+    ...mapActions('builder', ['updateServices']),
     selectDetail (currentIndex) {
       this.currentDetail = currentIndex
       this.$refs.detailInput.focus()
     },
     deleteDescription (currentIndex) {
-      if (this.services[this.currentService - 1].details.length > 3) {
-        this.services[this.currentService - 1].details.splice(currentIndex, 1)
+      if (this.servicesData[this.currentService - 1].details.length > 3) {
+        this.servicesData[this.currentService - 1].details.splice(currentIndex, 1)
         this.currentDetail = currentIndex - 1
         this.$refs.detailInput.focus()
       } else {
@@ -159,20 +162,20 @@ export default {
     },
     addDescription (currentIndex) {
       var newIndex = currentIndex + 1
-      this.services[this.currentService - 1].details.splice(newIndex, 0, { ...detail })
+      this.servicesData[this.currentService - 1].details.splice(newIndex, 0, { ...detail })
       this.currentDetail = newIndex
       this.$refs.detailInput.focus()
     },
     deleteService () {
-      if (this.services.length > 3) {
-        this.services.splice(this.currentService - 1, 1)
+      if (this.servicesData.length > 3) {
+        this.servicesData.splice(this.currentService - 1, 1)
         this.currentService -= 1
       } else {
         this.$q.notify({
           color: 'brand-yellow',
           textColor: 'grey-9',
           icon: 'error',
-          message: 'A minimum of 3 services is required!'
+          message: 'A minimum of 3 servicesData is required!'
         })
       }
     },
@@ -185,12 +188,23 @@ export default {
           { ...detail }
         ]
       }
-      this.services.push(service)
-      this.currentService = this.services.length
+      this.servicesData.push(service)
+      this.currentService = this.servicesData.length
     },
     showServicesPreview () {
       console.log('do sum')
+    },
+    setServicesData () {
+      this.servicesData = this.$lodash.cloneDeep(this.services)
     }
+  },
+  created () {
+    this.setServicesData()
+  },
+  beforeRouteLeave (to, from, next) {
+    console.log('Save Changes?') // Ask user to save changes
+    this.updateServices(this.servicesData)
+    next()
   }
 }
 </script>
