@@ -45,7 +45,80 @@ export default function () {
           }
         ]
       }
-    ]
-
+    ],
+    aboutUs: {
+      title: null,
+      description: null,
+      image: null,
+      coreValues: [
+        {
+          name: null,
+          definition: null
+        },
+        {
+          name: null,
+          definition: null
+        },
+        {
+          name: null,
+          definition: null
+        }
+      ]
+    },
+    highlights: [
+      {
+        name: null,
+        icon: null
+      },
+      {
+        name: null,
+        icon: null
+      },
+      {
+        name: null,
+        icon: null
+      }
+    ],
+    teamMembers: [
+      {
+        id: null,
+        name: null,
+        image: null
+      }
+    ],
+    services: [
+      {
+        name: null,
+        details: [
+          { text: null },
+          { text: null },
+          { text: null }
+        ]
+      },
+      {
+        name: null,
+        details: [
+          { text: null },
+          { text: null },
+          { text: null }
+        ]
+      },
+      {
+        name: null,
+        details: [
+          { text: null },
+          { text: null },
+          { text: null }
+        ]
+      }
+    ],
+    googlePlace: {
+      id: null
+    },
+    reviews: null,
+    contactUs: {
+      phone: null,
+      email: null
+    }
   }
 }
