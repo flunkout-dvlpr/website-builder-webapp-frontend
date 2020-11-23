@@ -59,16 +59,34 @@
           </div>
           <!-- Image -->
           <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
-            <div class="col-md-12 col-xs-12">
+            <div class="col-md-12 col-xs-12" v-if="!slideInView.image">
               <q-uploader
                 flat
                 square
-                color="brand-orange"
-                class="text-left bg-brand-grey"
-                :url="slideInView.image"
-                label="Background Image"
+                hide-upload-btn
                 style="width: auto"
+                color="brand-orange"
+                label="Background Image"
+                class="text-left bg-brand-grey"
+                :url="url"
+                ref="fileUploader"
+                @added="getUploadLink"
+                @uploaded="onUploadComplete"
+                @rejected="onUploadFail"
+                :headers="[{'Content-Type': '*'}]"
+                :send-raw="true"
+                max-files="1"
+                max-file-size="10000000"
+                method="PUT"
               />
+            </div>
+            <div class="col-md-12 col-xs-12" v-if="slideInView.image">
+              <q-img
+                :src="slideInView.image"
+                :ratio="4/3"
+              >
+                <q-btn flat no-caps label="Re-Upload" class="shadow-14 bg-brand-yellow text-grey-9" style="top: 85%;" @click="resetImage"/>
+              </q-img>
             </div>
           </div>
           </q-form>
@@ -100,6 +118,7 @@
                 square
                 outlined
                 color="brand-yellow"
+                :popup-content-style="{ backgroundColor: '#1D1D1D' }"
                 v-model="buttonInView.type"
                 :options="options"
                 :label="!currentButton ? 'Add Button': 'Type'"
@@ -150,7 +169,7 @@
           color="brand-orange"
           text-color="grey-9"
           v-model="currentSlide"
-          :max="slides.length"
+          :max="slidesData.length"
           @input="currentButton = slideInView.buttons.length ? 1 : 0"
         />
       </div>
@@ -191,15 +210,17 @@ var buttonTemplate = {
   type: null,
   link: null
 }
+import { mapGetters, mapActions } from 'vuex'
 import LandingCarouselPreview from 'components/LandingCarouselPreview'
 export default {
   name: 'LandingCarousel',
   data () {
     return {
+      url: null,
       options: ['URL', 'Download', 'PopUp'],
       currentSlide: 1,
       currentButton: 1,
-      slides: [
+      slidesData: [
         {
           id: 1,
           title: null,
@@ -236,8 +257,9 @@ export default {
     }
   },
   computed: {
+    ...mapGetters('builder', ['business', 'template', 'slides']),
     slideInView () {
-      return this.slides[this.currentSlide - 1]
+      return this.slidesData[this.currentSlide - 1]
     },
     buttonInView () {
       if (this.currentButton > 0) {
@@ -247,26 +269,60 @@ export default {
     }
   },
   methods: {
+    ...mapActions('builder', ['updateSlides', 'generateUploadLink']),
+    getUploadLink () {
+      var body = {
+        id: this.business.id,
+        template: this.template,
+        section: 'landing-carousel',
+        fileName: `slide-${this.currentSlide}-image.png`
+      }
+      this.generateUploadLink(body).then((response) => {
+        this.url = response
+      }).then(() => {
+        this.$refs.fileUploader.upload()
+      })
+    },
+    onUploadFail () {
+      this.$q.notify({
+        color: 'warning',
+        textColor: 'grey-2',
+        icon: 'warning',
+        message: 'File extension not supported or File size is too large'
+      })
+    },
+    onUploadComplete () {
+      this.$q.notify({
+        color: 'positive',
+        textColor: 'grey-9',
+        icon: 'send',
+        message: 'File uploaded successfully'
+      })
+      this.slidesData[this.currentSlide - 1].image = `https://website-builder-webapp-data.s3.us-east-2.amazonaws.com/${this.template}/${this.business.id}/landing-carousel/slide-${this.currentSlide}-image.png`
+    },
+    resetImage () {
+      this.slidesData[this.currentSlide - 1].image = null
+    },
     addSlide () {
       this.$refs.slideForm.validate().then(success => {
         if (success) {
           var slide = { ...slideTemplate } // Shallow copy slideTemplate (only copies non-nested)
           slide.buttons = [{ ...buttonTemplate }] // Shallow copy buttonTemplate (buttons nested)
-          var id = this.slides.length + 1
+          var id = this.slidesData.length + 1
           slide.id = id
-          this.slides.push({ ...slide })
+          this.slidesData.push({ ...slide })
           this.currentSlide += 1
         }
       })
     },
     deleteSlide () {
-      if (this.slides.length > 2) {
+      if (this.slidesData.length > 2) {
         var idx = this.currentSlide - 1
-        this.slides.splice(idx, 1)
+        this.slidesData.splice(idx, 1)
         this.currentSlide = 1
         // Renumber slide id's after delete
         var slideId = 1
-        this.slides.forEach(slide => {
+        this.slidesData.forEach(slide => {
           slide.id = slideId
           slideId += 1
           return slide
@@ -276,7 +332,7 @@ export default {
           color: 'brand-yellow',
           textColor: 'grey-9',
           icon: 'error',
-          message: 'A minimum of 2 slides is required!'
+          message: 'A minimum of 2 slidesData is required!'
         })
       }
     },
@@ -284,18 +340,18 @@ export default {
       if (this.slideInView.buttons.length) {
         this.$refs.buttonForm.validate().then(success => {
           if (success) {
-            this.slides[this.currentSlide - 1].buttons.push({ ...buttonTemplate })
+            this.slidesData[this.currentSlide - 1].buttons.push({ ...buttonTemplate })
             this.currentButton += 1
           }
         })
       } else {
-        this.slides[this.currentSlide - 1].buttons.push({ ...buttonTemplate })
+        this.slidesData[this.currentSlide - 1].buttons.push({ ...buttonTemplate })
         this.currentButton += 1
       }
     },
     deleteButton () {
       var idx = this.currentButton - 1
-      this.slides[this.currentSlide - 1].buttons.splice(idx, 1)
+      this.slidesData[this.currentSlide - 1].buttons.splice(idx, 1)
       this.currentButton = this.slideInView.buttons.length
       this.$refs.buttonForm.resetValidation()
     },
@@ -303,9 +359,20 @@ export default {
       this.$q.dialog({
         component: LandingCarouselPreview,
         parent: this,
-        slides: this.slides
+        slides: this.slidesData
       })
+    },
+    setSlidesData () {
+      this.slidesData = this.$lodash.cloneDeep(this.slides)
     }
+  },
+  created () {
+    this.setSlidesData()
+  },
+  beforeRouteLeave (to, from, next) {
+    console.log('Save Changes?') // Ask user to save changes
+    this.updateSlides(this.slidesData)
+    next()
   }
 }
 </script>
