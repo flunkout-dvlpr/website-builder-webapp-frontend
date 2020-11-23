@@ -12,10 +12,10 @@
             square
             outlined
             color="brand-yellow"
-            v-model="bussiness.name"
+            v-model="businessData.name"
             label="Name"
             type="text"
-            :rules="[val => !!val || 'Please enter business name']"
+            :rules="[val => !!val || 'Please enter businessData name']"
           />
         </div>
       </div>
@@ -27,7 +27,7 @@
             square
             outlined
             color="brand-yellow"
-            v-model="bussiness.email"
+            v-model="businessData.email"
             label="Email"
             type="text"
             :rules="[val => /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,10})+$/.test(val) || 'E-mail must be valid']"
@@ -39,7 +39,7 @@
             square
             outlined
             color="brand-yellow"
-            v-model="bussiness.phone"
+            v-model="businessData.phone"
             label="Phone"
             fill-mask
             unmasked-value
@@ -50,18 +50,43 @@
           />
         </div>
       </div>
-      <!-- Address - Zip Code -->
+      <!-- Address 1 - Address 2 -->
       <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
-        <div class="col-md-5 col-xs-12">
+        <div class="col-md-4 col-xs-12">
           <q-input
             dark
             square
             outlined
             color="brand-yellow"
-            v-model="bussiness.address"
-            label="Address"
+            v-model="businessData.address_1"
+            label="Address 1"
             type="text"
             :rules="[val => !!val || 'Please enter an address']"
+          />
+        </div>
+        <div class="col-md-4 col-xs-12">
+          <q-input
+            dark
+            square
+            outlined
+            color="brand-yellow"
+            v-model="businessData.address_2"
+            label="Address 2"
+            type="text"
+          />
+        </div>
+      </div>
+      <!-- City - State -->
+      <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
+        <div class="col-md-2 col-xs-12">
+          <q-input
+            dark
+            square
+            outlined
+            color="brand-yellow"
+            v-model="businessData.zip_code"
+            label="Zip Code"
+            :rules="[val => !!val || 'Please enter a zip code']"
           />
         </div>
         <div class="col-md-3 col-xs-12">
@@ -70,26 +95,12 @@
             square
             outlined
             color="brand-yellow"
-            v-model="bussiness.zip_code"
-            label="Zip Code"
-            :rules="[val => !!val || 'Please enter a zip code']"
-          />
-        </div>
-      </div>
-      <!-- City - State -->
-      <div class="row justify-center full-width q-col-gutter-xs q-mb-xs">
-        <div class="col-md-4 col-xs-12">
-          <q-input
-            dark
-            square
-            outlined
-            color="brand-yellow"
-            v-model="bussiness.city"
+            v-model="businessData.city"
             label="City"
             :rules="[val => !!val || 'Please enter a city']"
           />
         </div>
-        <div class="col-md-4 col-xs-12">
+        <div class="col-md-3 col-xs-12">
           <q-select
             dark
             square
@@ -97,7 +108,8 @@
             use-input
             clearable
             color="brand-yellow"
-            v-model="bussiness.state"
+            :popup-content-style="{ backgroundColor: '#1D1D1D' }"
+            v-model="businessData.state"
             :options="filteredStates"
             @filter="filterStates"
             label="State"
@@ -118,7 +130,7 @@
             outlined
             color="brand-yellow"
             :popup-content-style="{ backgroundColor: '#1D1D1D' }"
-            v-model="template"
+            v-model="businessData.db_name"
             :options="templates"
             label="Template"
             :rules="[val => !!val || 'Please select a template']"
@@ -134,7 +146,7 @@
             flat
             no-caps
             class="text-grey-9 full-width bg-brand-teal"
-            label="Register"
+            :label="!business.id ? 'Register' : 'Save'"
             type="submit"
             :loading="loading"
           />
@@ -311,32 +323,34 @@ const states = [
   { label: 'Wyoming', value: 'WY' }
 ]
 const templates = [
-  { label: 'Auto Shop', value: 'https://github.com/clean-code-llc/auto-shop.git' },
-  { label: 'Restaurant', value: 'https://github.com/clean-code-llc/restaurant.git' },
-  { label: 'Beauty Salon', value: 'https://github.com/clean-code-llc/beauty-salon.git' },
-  { label: 'Barber Shop', value: 'https://github.com/clean-code-llc/barber-shop.git' },
-  { label: 'Realtor', value: 'https://github.com/clean-code-llc/realtor.git' }
+  { label: 'Auto Shop', value: 'auto_shop_crm' },
+  { label: 'Restaurant', value: 'restaurant' },
+  { label: 'Beauty Salon', value: 'beauty_salon' },
+  { label: 'Barber Shop', value: 'barber_shop' },
+  { label: 'Realtor', value: 'realtor' }
 ]
+import { mapActions, mapGetters } from 'vuex'
 import { colors } from 'quasar'
 import ColorsPreview from 'components/ColorsPreview'
 export default {
   name: 'Registration',
   data () {
     return {
-      bussiness: {
+      loading: false,
+      businessData: {
         name: null,
         email: null,
         phone: null,
-        address: null,
+        address_1: null,
+        address_2: null,
         zip_code: null,
         city: null,
-        state: null
+        state: null,
+        db_name: null
       },
       states,
       filteredStates: states,
-      template: null,
       templates,
-      loading: false,
       themeColor: colors.getBrand('primary'),
       backgroundColor: colors.getBrand('dark'),
       accentBackground1Color: colors.getBrand('secondary'),
@@ -344,11 +358,21 @@ export default {
       textColor: colors.getBrand('info')
     }
   },
+  computed: {
+    ...mapGetters('builder', ['business', 'template'])
+  },
   methods: {
+    ...mapActions('builder', ['register', 'updateRegistration']),
     onSubmit () {
-      console.log('Call action to create record in db')
-      console.log('Clone selected repo template')
-      // this.$router.push(({ name: 'LandingCarousel' }))
+      if (!this.business.id) {
+        this.register(this.businessData).then((response) => {
+          this.setBusinessData()
+        })
+      } else {
+        this.updateRegistration(this.businessData).then((response) => {
+          this.setBusinessData()
+        })
+      }
     },
     filterStates (searchText, update) {
       if (searchText === '') {
@@ -372,7 +396,14 @@ export default {
         component: ColorsPreview,
         parent: this
       })
+    },
+    setBusinessData () {
+      this.businessData = this.$lodash.cloneDeep(this.business)
+      this.businessData.db_name = this.$lodash.cloneDeep(this.template)
     }
+  },
+  created () {
+    this.setBusinessData()
   }
 }
 </script>
